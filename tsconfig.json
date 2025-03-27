@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "lib": ["es2017", "dom"], 
+        "outDir": "./testing/market",
+        "paths": {
+            "@market": ["./mod.ts"]
+        },
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+    }
+}
