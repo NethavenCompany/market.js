@@ -1,5 +1,5 @@
 {
-  "name": "market",
+  "name": "@nethaven/market.js",
   "version": "1.0.0",
   "type": "module",
   "description": "Lightweight no dependency storage wrapper",
