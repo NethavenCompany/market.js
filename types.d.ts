@@ -12,6 +12,8 @@ interface Subscription {
 	event: keyof HTMLElementEventMap;
 	/** The element attribute to sync with the market */
 	attribute: string;
+	/** The default value to set if the market product is not found */
+	defaultValue?: unknown;
 	/** Optional callback function called after the market is updated */
 	callback?: (event: Event, market: Market) => void;
 }

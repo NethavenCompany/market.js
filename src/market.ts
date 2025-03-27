@@ -103,6 +103,9 @@ export default class Market {
 		if (this.has(subscription.product)) {
 			const element = subscription.element as unknown as Record<string, unknown>;
 			element[subscription.attribute] = this.get(subscription.product);
+		} else {
+			const element = subscription.element as unknown as Record<string, unknown>;
+			element[subscription.attribute] = subscription.defaultValue;
 		}
 
 		const listener = (event: Event) => this.handleSubscription(subscription, event);
