@@ -1,7 +1,7 @@
 # market.js
 
-[![npm version](https://img.shields.io/npm/v/@nethaven/market.js.svg)](https://www.npmjs.com/package/@nethaven/market.js)
-[![License](https://img.shields.io/npm/l/@nethaven/market.js.svg)](https://github.com/NethavenCompany/market.js/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@nethaven/market.svg)](https://www.npmjs.com/package/@nethaven/market)
+[![License](https://img.shields.io/npm/l/@nethaven/market.svg)](https://github.com/NethavenCompany/market.js/blob/main/LICENSE)
 
 A lightweight, zero-dependency storage wrapper with a simple API for managing browser storage (localStorage and sessionStorage) with event handling capabilities.
 
