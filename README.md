@@ -13,11 +13,18 @@ A lightweight, zero-dependency storage wrapper with a simple API for managing br
 - 🔌 Element subscription support
 - 💾 Supports both localStorage and sessionStorage
 - 🎯 TypeScript support
+- 🌐 Browser-only package
+
+## Requirements
+
+- Modern browser with support for ES2017 or later
+- Support for localStorage and sessionStorage APIs
 
 ## Table of Contents
 
 - [market.js](#marketjs)
   - [Features](#features)
+  - [Requirements](#requirements)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Quick Start](#quick-start)
@@ -36,20 +43,22 @@ A lightweight, zero-dependency storage wrapper with a simple API for managing br
     - [Theme Switcher](#theme-switcher)
     - [Form Data Persistence](#form-data-persistence)
   - [Contributing](#contributing)
+  - [Browser Support](#browser-support)
+  - [Development](#development)
   - [License](#license)
 
 ## Installation
 
 ```bash
-npm install @nethaven/market.js
+npm install @nethaven/market
 # or
-yarn add @nethaven/market.js
+yarn add @nethaven/market
 ```
 
 ## Quick Start
 
 ```javascript
-import { useLocalMarket } from 'market';
+import { useLocalMarket } from '@nethaven/market';
 
 // Create a new market for user settings
 const settings = useLocalMarket("userSettings", { theme: "dark" });
@@ -71,7 +80,7 @@ settings.on("afterSettingProduct", (evt) => {
 ### Creating Markets
 
 ```javascript
-import { useLocalMarket, useSessionMarket } from 'market';
+import { useLocalMarket, useSessionMarket } from '@nethaven/market';
 
 // Local storage market
 const settings = useLocalMarket("userSettings", { theme: "dark" });
@@ -245,6 +254,24 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+## Browser Support
+
+This package is designed to work in all modern browsers that support:
+- ES2017 or later
+- localStorage and sessionStorage APIs
+- DOM APIs
+
+## Development
+
+To contribute to the project:
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Build the project: `npm run build`
+4. Make your changes
+5. Ensure the build passes: `npm run build`
+6. Submit a pull request
 
 ## License
 

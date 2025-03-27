@@ -1,12 +1,21 @@
 {
     "compilerOptions": {
-        "target": "ESNext",
-        "lib": ["es2017", "dom"], 
-        "outDir": "./testing/market",
+        "target": "ES2017",
+        "lib": ["es2017", "dom"],
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "outDir": "./dist",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
         "paths": {
             "@market": ["./mod.ts"]
         },
         "strict": true,
         "forceConsistentCasingInFileNames": true,
-    }
+        "esModuleInterop": true,
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*", "mod.ts"],
+    "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

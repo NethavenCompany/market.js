@@ -1,17 +1,32 @@
 {
   "name": "@nethaven/market",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Lightweight no dependency storage wrapper",
-  "main": "mod.ts",
-  "scripts": {
-    "test": "npx tsc"
+  "main": "dist/mod.js",
+  "types": "types.d.ts",
+  "files": [
+    "dist",
+    "types.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "browsers": ">= 2017"
   },
+  "scripts": {
+    "test": "npx tsc",
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "dependencies": {},
+  "devDependencies": {},
   "keywords": [
     "lightweight",
     "storage",
     "local-storage",
-    "session-storage"
+    "session-storage",
+    "browser"
   ],
   "author": "nethaven",
   "license": "MIT",
