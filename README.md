@@ -55,6 +55,8 @@ npm install @nethaven/market
 yarn add @nethaven/market
 ```
 
+or get your own custom build at [plugins.nethaven.nl/market.js/build](https://plugins.nethaven.nl/market.js/build)
+
 ## Quick Start
 
 ```javascript
@@ -88,6 +90,8 @@ const settings = useLocalMarket("userSettings", { theme: "dark" });
 // Session storage market
 const registration = useSessionMarket("registration");
 ```
+
+---
 
 ### Storage Operations
 
@@ -144,6 +148,8 @@ Clears all products from the market. Triggers `beforeClearingMarket` and `afterC
 settings.clear();
 ```
 
+---
+
 ### Event System
 
 The market provides a comprehensive event system for monitoring storage operations. Each event includes a timestamp and relevant data about the operation.
@@ -152,30 +158,58 @@ The market provides a comprehensive event system for monitoring storage operatio
 const settings = useLocalMarket("userSettings");
 
 // Listen for specific events
-settings.on("beforeSettingProduct", (evt) => {
+settings.on("beforeSet", (evt) => {
   console.log("About to set:", evt.newProducts);
   console.log("Current state:", evt.products);
   console.log("Event timestamp:", evt.timestamp);
 });
 
-settings.on("afterSettingProduct", (evt) => {
+settings.on("afterSet", (evt) => {
   console.log("Updated products:", evt.products);
   console.log("New products:", evt.newProducts);
   console.log("Event timestamp:", evt.timestamp);
 });
 
-// Available events:
-// - beforeSettingProduct: Triggered before setting products
-// - afterSettingProduct: Triggered after setting products
-// - beforeRemovingProduct: Triggered before removing products
-// - afterRemovingProduct: Triggered after removing products
-// - beforeClearingMarket: Triggered before clearing the market
-// - afterClearingMarket: Triggered after clearing the market
+// Available events and their properties:
+
+// - beforeSet: Triggered before setting products
+//   Properties: { products, newProducts, timestamp }
+// - afterSet: Triggered after setting products
+//   Properties: { products, newProducts, timestamp }
+// - beforeRemove: Triggered before removing products
+//   Properties: { products, timestamp }
+// - afterRemove: Triggered after removing products
+//   Properties: { products, removedProducts, timestamp }
+// - beforeClear: Triggered before clearing the market
+//   Properties: { products, timestamp }
+// - afterClear: Triggered after clearing the market
+//   Properties: { products, timestamp }
 ```
+
+Each event object includes:
+- `timestamp`: The exact time when the event was created (in milliseconds)
+- `products`: The current state of all products in the market
+
+The `beforeSettingProducts` and `afterSettingProducts` events have access to:
+- `newProducts`: The new products being set
+
+
+And finally `afterRemovingProducts` has access to:
+- `removedProducts`: The products that were removed
+
+> [!NOTE]
+> 
+> When using events with element subscriptions, you can either handle changes through the subscription callback or through one of the events like `afterSettingProduct`. 
+> There is one key difference between these methods that you should take note of when choosing one of these methods.
+> 
+> The callback method gives you access to both the `HTMLEvent` and the `MarketObject`, while the `afterSettingProduct` event only provides the `MarketEvent`.
+
+---
 
 ### Element Subscription
 
-Subscribe HTML elements to automatically update the market when their values change. The subscription system automatically syncs the element's value with the market and vice versa.
+Subscribe HTML elements to automatically update the market when their values change. The subscription system ensures that the element's value is always in sync with the market and vice versa.
+This method is particularly useful for scenarios such as multi-page forms where you need to persist the state of form elements or for something like a theme selector.
 
 ```javascript
 const settings = useLocalMarket("userSettings");
@@ -197,6 +231,10 @@ settings.subscribeElement(subscription);
 settings.unsubscribeElement(subscription);
 ```
 
+> [!NOTE]
+> 
+> The subscription system will automatically initialize the element's value with the current market value if it exists, or with the default value if specified. This ensures that the element and market stay in sync from the moment of subscription.
+
 #### Subscription Properties
 - `element`: The HTML element to subscribe to
 - `product`: The market product to sync with
@@ -208,21 +246,35 @@ settings.unsubscribeElement(subscription);
 
 ### Theme Switcher
 ```javascript
-const settings = useLocalMarket("theme", { current: "light" });
+const settings = useLocalMarket("theme", { font: "Roboto", colors: "light" });
 
 // Subscribe to theme toggle
 settings.subscribeElement({
   element: document.querySelector("#themeToggle"),
-  product: "current",
+  product: "colors",
   event: "change",
-  attribute: "value"
+  attribute: "value",
+  // You can either apply theme changes through the callback property whenever the HTMLEvent fires.
+  callback: (event, ) => {
+
+  }
 });
 
-// Apply theme changes
+// Or you can apply theme changes when when the `afterSettingProduct` event fires.
 settings.on("afterSettingProduct", (evt) => {
-  document.body.className = evt.products.current;
+  document.body.className = evt.products.colors;
 });
 ```
+
+> [!NOTE]
+>
+> Important note...
+>
+> It doesn't really matter whether you use the callback method or the `afterSettingProduct` event.
+> 
+> Internally they both run after the new value has been set, one key difference is that the callback method gives you access to both the `HTMLEvent` and the `MarketObject`
+>
+> While the afterSettingProduct event only gives you a `MarketEvent` 
 
 ### Form Data Persistence
 ```javascript
