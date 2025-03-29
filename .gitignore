@@ -1,2 +1,5 @@
 testing
 *.code-workspace
+node_modules
+dist/*.min.js
+package-lock.json

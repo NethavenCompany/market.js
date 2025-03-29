@@ -1,6 +1,5 @@
+import type { Subscription, MarketEventDetails } from "../types.d.ts";
 import { MarketEvent, MarketEvents } from "./events/event.js";
-
-import { Subscription, MarketEventDetails } from "../types.js";
 import Queue from "./queue/queue.js";
 
 export default class Market {
@@ -9,14 +8,20 @@ export default class Market {
 	public defaultProducts: Record<string, unknown>;
 	public storage: Storage;
 	public queue: Queue;
-	private eventListeners = new Map<Subscription, (event: Event) => void>();
+	private listeners = new Map<Subscription, (event: Event) => void>();
 
-	constructor(marketId: string, defaultProducts: Record<string, unknown> = {}, storage: Storage) {
+	constructor(
+		marketId: string,
+		defaultProducts: Record<string, unknown> = {},
+		storage: Storage
+	) {
 		this.id = marketId;
 		this.products = defaultProducts;
 		this.defaultProducts = defaultProducts;
 		this.storage = storage;
 		this.queue = new Queue();
+
+		this._prepare();
 	}
 
 	// Storage methods
@@ -34,33 +39,29 @@ export default class Market {
 		return product in this.products;
 	}
 
+	hasAll(products: Record<string, unknown>): boolean {
+		return Object.keys(products).every((product) => this.has(product));
+	}
+
 	set(products: Record<string, unknown>): void {
-		dispatchEvent(
-			this._event(MarketEvents.BeforeSettingProduct, {
-				products: this.products,
-				newProducts: products,
-			})
-		);
+		const oldProducts = { ...this.products };
+		const newProducts = { ...products };
 
 		this.products = { ...this.products, ...products };
 		this._save();
 
 		dispatchEvent(
-			this._event(MarketEvents.AfterSettingProduct, {
+			this._event(MarketEvents.Set, {
 				products: this.products,
-				newProducts: products,
+				oldProducts,
+				newProducts,
 			})
 		);
 	}
 
-	rm(...products: string[]): void {
+	remove(...products: string[]): void {
+		const oldProducts = { ...this.products };
 		const removedProducts: Record<string, unknown> = {};
-
-		dispatchEvent(
-			this._event(MarketEvents.BeforeRemovingProduct, {
-				products: this.products,
-			})
-		);
 
 		products.forEach((product) => {
 			removedProducts[product] = this.products[product];
@@ -69,76 +70,95 @@ export default class Market {
 		this._save();
 
 		dispatchEvent(
-			this._event(MarketEvents.AfterRemovingProduct, {
+			this._event(MarketEvents.Remove, {
 				products: this.products,
+				oldProducts,
 				removedProducts,
 			})
 		);
 	}
 
 	clear(): void {
-		dispatchEvent(
-			this._event(MarketEvents.BeforeClearingMarket, {
-				products: this.products,
-			})
-		);
+		const oldProducts = { ...this.products };
 
 		this.products = {};
 		this._save();
 
 		dispatchEvent(
-			this._event(MarketEvents.AfterClearingMarket, { products: this.products })
+			this._event(MarketEvents.Clear, {
+				products: this.products,
+				oldProducts,
+			})
+		);
+	}
+
+	destroy(): void {
+		this.listeners.forEach((_listener, subscription) => {
+			this.unsubscribeElement(subscription);
+		});
+
+		this.listeners.clear();
+
+		this.storage.removeItem(this.id);
+
+		dispatchEvent(
+			this._event(MarketEvents.Destroy, {
+				products: this.products,
+			})
 		);
 	}
 
 	// Event handling
 	// ========================
 
-	on(event: MarketEvents, callback: (event: CustomEvent<MarketEventDetails>) => void): void {
+	on(
+		event: MarketEvents,
+		callback: (event: CustomEvent<MarketEventDetails>, market: Market) => void
+	): void {
 		const eventId = `${this.id}__${event}`;
-		addEventListener(eventId, callback as EventListener);
+		addEventListener(eventId, (event: Event) => {
+			callback(event as CustomEvent<MarketEventDetails>, this);
+		});
 	}
 
 	subscribeElement(subscription: Subscription): void {
-		if (this.has(subscription.product)) {
-			const element = subscription.element as unknown as Record<string, unknown>;
-			element[subscription.attribute] = this.get(subscription.product);
-		} else {
-			const element = subscription.element as unknown as Record<string, unknown>;
-			element[subscription.attribute] = subscription.defaultValue;
-		}
-
-		const listener = (event: Event) => this.handleSubscription(subscription, event);
-		this.eventListeners.set(subscription, listener);
+		const listener = (event: Event) =>
+			this._handleSubscription(subscription, event);
+		this.listeners.set(subscription, listener);
 
 		subscription.element.addEventListener(subscription.event, listener);
 	}
 
 	unsubscribeElement(subscription: Subscription): void {
-		const listener = this.eventListeners.get(subscription);
+		const listener = this.listeners.get(subscription);
 
 		if (listener) {
 			subscription.element.removeEventListener(subscription.event, listener);
-			this.eventListeners.delete(subscription);
-		}
-	}
-
-	private handleSubscription(subscription: Subscription, evt: Event): void {
-		const target = evt.target as unknown as Record<string, unknown>;
-		const newProduct = target[subscription.attribute];
-		const productSet: Record<string, unknown> = {};
-		productSet[subscription.product] = newProduct;
-		this.set(productSet);
-
-		if (subscription.callback) {
-			subscription.callback(evt, this);
+			this.listeners.delete(subscription);
 		}
 	}
 
 	// Protected methods
 	// ========================
 
-	protected _event(type: MarketEvents, details: MarketEventDetails = {}): MarketEvent<MarketEventDetails> {
+	private _handleSubscription(subscription: Subscription, event: Event): void {
+		const target = event.target as unknown as Record<string, unknown>;
+		const newProduct = target[subscription.attribute];
+
+		const productSet: Record<string, unknown> = {};
+		productSet[subscription.product] = newProduct;
+
+		this.set(productSet);
+
+		if (subscription.callback) {
+			subscription.callback(event, this);
+		}
+	}
+
+	protected _event(
+		type: MarketEvents,
+		details: MarketEventDetails = {}
+	): MarketEvent<MarketEventDetails> {
 		const eventId = `${this.id}__${type}`;
 		return new MarketEvent<MarketEventDetails>(eventId, details);
 	}

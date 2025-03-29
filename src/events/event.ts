@@ -1,40 +1,29 @@
-import { MarketEventDetails } from "../../types";
+import type { MarketEventDetails } from "../../types.d.ts";
 
 /**
  * Enumeration of all possible market events
  */
 export enum MarketEvents {
-	/** Triggered before setting products */
-	BeforeSettingProduct = "beforeSettingProduct",
-	/** Triggered after setting products */
-	AfterSettingProduct = "afterSettingProduct",
-	/** Triggered before removing products */
-	BeforeRemovingProduct = "beforeRemovingProduct",
-	/** Triggered after removing products */
-	AfterRemovingProduct = "afterRemovingProduct",
-	/** Triggered before clearing the market */
-	BeforeClearingMarket = "beforeClearingMarket",
-	/** Triggered after clearing the market */
-	AfterClearingMarket = "afterClearingMarket",
-	/** Triggered when a product changes */
-	ProductChange = "productChange",
+	/** Triggered each time the .set() method is called */
+	Set = "set",
+	/** Triggered each time the .remove() method is called */
+	Remove = "remove",
+	/** Triggered each time the .clear() method is called */
+	Clear = "clear",
+	/** Triggered when the market is deleted */
+	Destroy = "destroy",
 }
 
 /**
  * Custom event class for market events with additional metadata
  */
 export class MarketEvent<T extends MarketEventDetails> extends CustomEvent<T> {
-	/** Timestamp when the event was created */
-	readonly timestamp: number;
-
 	constructor(name: string, details: T) {
-		super(name, { detail: details });
-		this.timestamp = Date.now();
+		super(name, {});
 
 		// Copy all properties from details to the event instance
 		for (const [key, value] of Object.entries(details)) {
-			// @ts-expect-error: We are assigning dynamic properties
-			this[key] = value;
+			this[key as keyof this] = value as this[keyof this];
 		}
 	}
 }

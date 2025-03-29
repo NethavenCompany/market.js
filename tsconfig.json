@@ -14,8 +14,9 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "isolatedModules": true
     },
-    "include": ["src/**/*", "mod.ts"],
+    "include": ["src/**/*", "mod.ts", "types.d.ts"],
     "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

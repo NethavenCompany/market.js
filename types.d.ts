@@ -19,18 +19,11 @@ interface Subscription {
 }
 
 /**
- * Valid properties that can be included in market event details
- */
-type EventDetailProperty =
-	| "products"
-	| "removedProducts"
-	| "message"
-	| "newProducts";
-
-/**
  * Type for market event details with specific property types
  */
 interface MarketEventDetails {
+	/** The market instance */
+	market?: Market;
 	/** Current products in the market */
 	products?: Record<string, unknown>;
 	/** Products that were removed */
@@ -39,6 +32,8 @@ interface MarketEventDetails {
 	message?: string;
 	/** New products being set */
 	newProducts?: Record<string, unknown>;
+	/** Old products before being set */
+	oldProducts?: Record<string, unknown>;
 }
 
 /**

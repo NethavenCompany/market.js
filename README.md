@@ -1,3 +1,5 @@
+<img src="./images/cover.jpeg">
+
 # market.js
 
 [![npm version](https://img.shields.io/npm/v/@nethaven/market.svg)](https://www.npmjs.com/package/@nethaven/market)
@@ -34,8 +36,10 @@ A lightweight, zero-dependency storage wrapper with a simple API for managing br
       - [`.get(product?: string)`](#getproduct-string)
       - [`.set(products: {})`](#setproducts-)
       - [`.has(product: string)`](#hasproduct-string)
-      - [`.rm(...products: string[])`](#rmproducts-string)
+      - [`.hasAll(products: {})`](#hasallproducts-)
+      - [`.remove(...products: string[])`](#removeproducts-string)
       - [`.clear()`](#clear)
+      - [`.destroy()`](#destroy)
     - [Event System](#event-system)
     - [Element Subscription](#element-subscription)
       - [Subscription Properties](#subscription-properties)
@@ -72,8 +76,8 @@ settings.set({ theme: "light" });
 const theme = settings.get("theme");
 
 // Listen for changes
-settings.on("afterSettingProduct", (evt) => {
-  console.log("Theme updated:", evt.newProducts.theme);
+settings.on("set", (event, market) => {
+  console.log("Theme updated:", event.newProducts.theme);
 });
 ```
 
@@ -107,7 +111,7 @@ const allSettings = settings.get();
 ```
 
 #### `.set(products: {})`
-Sets one or more products in the market. Triggers `beforeSettingProduct` and `afterSettingProduct` events.
+Sets one or more products in the market. Triggers `set` events.
 
 ```javascript
 // Set single product
@@ -130,79 +134,106 @@ if (settings.has("theme")) {
 }
 ```
 
-#### `.rm(...products: string[])`
-Removes one or more products from the market. Triggers `beforeRemovingProduct` and `afterRemovingProduct` events.
+#### `.hasAll(products: {})`
+Checks if all specified products exist in the market.
+
+```javascript
+if (settings.hasAll({ theme: true, font: true })) {
+  // All required settings exist
+}
+```
+
+#### `.remove(...products: string[])`
+Removes one or more products from the market. Triggers `remove` events.
 
 ```javascript
 // Remove single product
-settings.rm("theme");
+settings.remove("theme");
 
 // Remove multiple products
-settings.rm("theme", "font");
+settings.remove("theme", "font");
 ```
 
 #### `.clear()`
-Clears all products from the market. Triggers `beforeClearingMarket` and `afterClearingMarket` events.
+Clears all products from the market. Triggers `clear` events.
 
 ```javascript
 settings.clear();
+```
+
+#### `.destroy()`
+Destroys the market by clearing all event listeners and removing the data from storage. Triggers `destroy` events.
+
+```javascript
+settings.destroy();
 ```
 
 ---
 
 ### Event System
 
-The market provides a comprehensive event system for monitoring storage operations. Each event includes a timestamp and relevant data about the operation.
+The market provides a comprehensive event system for monitoring storage operations. Each event includes relevant data about the operation.
 
 ```javascript
 const settings = useLocalMarket("userSettings");
 
 // Listen for specific events
-settings.on("beforeSet", (evt) => {
-  console.log("About to set:", evt.newProducts);
-  console.log("Current state:", evt.products);
-  console.log("Event timestamp:", evt.timestamp);
+settings.on("set", (event, market) => {
+  const { products, oldProducts, newProducts } = event;
+
+  console.log("Products before set:", event.oldProducts);
+  console.log("New products:", event.newProducts);
+  console.log("Current products:", event.products);
 });
 
-settings.on("afterSet", (evt) => {
-  console.log("Updated products:", evt.products);
-  console.log("New products:", evt.newProducts);
-  console.log("Event timestamp:", evt.timestamp);
+settings.on("remove", (event, market) => {
+  const { products, oldProducts, removedProducts } = event;
+
+  console.log("Products before remove:", oldProducts);
+  console.log("Removed products:", removedProducts);
+  console.log("Current products:", products);
 });
 
-// Available events and their properties:
+settings.on("clear", (event, market) => {
+  const { products, oldProducts } = event;
 
-// - beforeSet: Triggered before setting products
-//   Properties: { products, newProducts, timestamp }
-// - afterSet: Triggered after setting products
-//   Properties: { products, newProducts, timestamp }
-// - beforeRemove: Triggered before removing products
-//   Properties: { products, timestamp }
-// - afterRemove: Triggered after removing products
-//   Properties: { products, removedProducts, timestamp }
-// - beforeClear: Triggered before clearing the market
-//   Properties: { products, timestamp }
-// - afterClear: Triggered after clearing the market
-//   Properties: { products, timestamp }
+  console.log("Products before clear:", oldProducts);
+  console.log("Current products:", products);
+});
+
+settings.on("destroy", (event, market) => {
+  const { products } = event;
+
+  console.log("Final state before destroying market:", products)
+})
+
+/* Available events:
+* - set: Triggered when setting products
+* - remove: Triggered when removing products
+* - clear: Triggered when clearing the market
+* - destroy: Triggered when destroying the market */
 ```
 
-Each event object includes:
-- `timestamp`: The exact time when the event was created (in milliseconds)
-- `products`: The current state of all products in the market
-
-The `beforeSettingProducts` and `afterSettingProducts` events have access to:
+The `set` event has access to:
+- `oldProducts`: The state of products before the update
 - `newProducts`: The new products being set
 
-
-And finally `afterRemovingProducts` has access to:
+The `remove` event has access to:
+- `oldProducts`: The state of products before removal
 - `removedProducts`: The products that were removed
+
+The `clear` event has access to:
+- `oldProducts`: The state of products before clearing
+
+The `destroy` event has access to:
+- `products`: The final state of products before destruction
 
 > [!NOTE]
 > 
-> When using events with element subscriptions, you can either handle changes through the subscription callback or through one of the events like `afterSettingProduct`. 
+> When using events with element subscriptions, you can either handle changes through the subscription callback or through one of the events like `set`. 
 > There is one key difference between these methods that you should take note of when choosing one of these methods.
 > 
-> The callback method gives you access to both the `HTMLEvent` and the `MarketObject`, while the `afterSettingProduct` event only provides the `MarketEvent`.
+> The callback method gives you access to both the `HTMLEvent` and the `MarketObject`, while the `set` event provides the `MarketEvent` and `MarketObject`.
 
 ---
 
@@ -255,33 +286,30 @@ settings.subscribeElement({
   event: "change",
   attribute: "value",
   // You can either apply theme changes through the callback property whenever the HTMLEvent fires.
-  callback: (event, ) => {
-
+  callback: (event, market) => {
+    document.body.className = event.target.value;
   }
 });
 
-// Or you can apply theme changes when when the `afterSettingProduct` event fires.
-settings.on("afterSettingProduct", (evt) => {
-  document.body.className = evt.products.colors;
+// Or you can apply theme changes when the `set` event fires.
+settings.on("set", (event, market) => {
+  document.body.className = event.products.colors;
 });
 ```
 
 > [!NOTE]
->
-> Important note...
->
-> It doesn't really matter whether you use the callback method or the `afterSettingProduct` event.
 > 
-> Internally they both run after the new value has been set, one key difference is that the callback method gives you access to both the `HTMLEvent` and the `MarketObject`
->
-> While the afterSettingProduct event only gives you a `MarketEvent` 
+> When using events with element subscriptions, you can either handle changes through the subscription callback or through one of the events like `set`. 
+> There is one key difference between these methods that you should take note of when choosing one of these methods.
+> 
+> The callback method gives you access to the `HTMLEvent`, while the `set` event provides the `MarketEvent`
 
 ### Form Data Persistence
 ```javascript
-const formData = useSessionMarket("registration");
+const registration = useSessionMarket("registration");
 
 // Save form progress
-formData.subscribeElement({
+registration.subscribeElement({
   element: document.querySelector("#registrationForm"),
   product: "data",
   event: "input",
@@ -290,7 +318,7 @@ formData.subscribeElement({
 
 // Restore form on page load
 window.addEventListener("load", () => {
-  const savedData = formData.get("data");
+  const savedData = registration.get("data");
   if (savedData) {
     // Restore form state
   }

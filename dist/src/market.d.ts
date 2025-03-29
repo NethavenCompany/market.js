@@ -1,5 +1,5 @@
+import type { Subscription, MarketEventDetails } from "../types.d.ts";
 import { MarketEvent, MarketEvents } from "./events/event.js";
-import { Subscription, MarketEventDetails } from "../types.js";
 import Queue from "./queue/queue.js";
 export default class Market {
     id: string;
@@ -7,17 +7,19 @@ export default class Market {
     defaultProducts: Record<string, unknown>;
     storage: Storage;
     queue: Queue;
-    private eventListeners;
+    private listeners;
     constructor(marketId: string, defaultProducts: Record<string, unknown> | undefined, storage: Storage);
     get(product?: string): unknown;
     has(product: string): boolean;
+    hasAll(products: Record<string, unknown>): boolean;
     set(products: Record<string, unknown>): void;
-    rm(...products: string[]): void;
+    remove(...products: string[]): void;
     clear(): void;
-    on(event: MarketEvents, callback: (event: CustomEvent<MarketEventDetails>) => void): void;
+    destroy(): void;
+    on(event: MarketEvents, callback: (event: CustomEvent<MarketEventDetails>, market: Market) => void): void;
     subscribeElement(subscription: Subscription): void;
     unsubscribeElement(subscription: Subscription): void;
-    private handleSubscription;
+    private _handleSubscription;
     protected _event(type: MarketEvents, details?: MarketEventDetails): MarketEvent<MarketEventDetails>;
     protected _save(): void;
     protected _prepare(): void;
