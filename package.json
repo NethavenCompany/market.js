@@ -1,6 +1,6 @@
 {
   "name": "@nethaven/market",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "type": "module",
   "description": "Lightweight no dependency storage wrapper",
   "main": "dist/mod.js",
@@ -15,12 +15,17 @@
     "browsers": ">= 2017"
   },
   "scripts": {
-    "test": "npx tsc",
-    "build": "tsc",
-    "prepare": "npm run build"
+    "build": "rollup -c",
+    "minify": "terser dist/mod.js -o dist/mod.min.js -c -m --module",
+    "build:minified": "npm run build && npm run minify"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "rollup": "^4.37.0",
+    "terser": "^5.39.0"
   },
   "dependencies": {},
-  "devDependencies": {},
   "keywords": [
     "lightweight",
     "storage",
