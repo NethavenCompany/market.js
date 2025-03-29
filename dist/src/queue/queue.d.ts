@@ -1,4 +1,4 @@
-import { Task } from "../../types";
+import type { Task } from "../../types.d.ts";
 /**
  * A queue for managing asynchronous tasks
  */
