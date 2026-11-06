@@ -230,16 +230,17 @@ The `destroy` event has access to:
 
 > [!NOTE]
 > 
-> When using events with element subscriptions, you can either handle changes through the subscription callback or through one of the events like `set`. 
-> There is one key difference between these methods that you should take note of when choosing one of these methods.
+> When using events with element subscriptions, you can either handle changes through the subscription callback or through the `set` event.
+> There is one key difference that you should take note of when choosing one of these methods.
 > 
-> The callback method gives you access to both the `HTMLEvent` and the `MarketObject`, while the `set` event provides the `MarketEvent` and `MarketObject`.
+> The callback method gives you access to the `HTMLEvent` and `MarketObject`, while the `set` event provides the `MarketEvent` and `MarketObject`.
 
 ---
 
 ### Element Subscription
 
-Subscribe HTML elements to automatically update the market when their values change. The subscription system ensures that the element's value is always in sync with the market and vice versa.
+Subscribe HTML elements to automatically update the market when their values change. 
+The subscription system ensures that the element's value is always in sync with the market and vice versa.
 This method is particularly useful for scenarios such as multi-page forms where you need to persist the state of form elements or for something like a theme selector.
 
 ```javascript
